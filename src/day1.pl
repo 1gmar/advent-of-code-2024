@@ -9,16 +9,23 @@ input_data(String, Data) :-
   maplist(line_numbers, Lines, NumLines),
   transpose(NumLines, Data).
 
+item_score(Item, List, Score) :-
+  include(==(Item), List, FL),
+  length(FL, C),
+  Score is Item * C.
+
 part1(Input, Result) :-
   input_data(Input, Data),
   maplist(msort, Data, SD),
   [L1, L2] = SD,
-  foldl([X, Y, S0, S]>>(abs(X - Y, AV), S is S0 + AV), L1, L2, 0, Result).
+  maplist([X, Y, abs(X - Y)]>>true, L1, L2, Diffs),
+  sum_list(Diffs, Result).
 
 part2(Input, Result) :-
   input_data(Input, Data),
   [L1, L2] = Data,
-  foldl([X, S0, Sum]>>(occurrences_of_term(X, L2, C), Sum is S0 + X * C), L1, 0, Result).
+  maplist([X, S]>>item_score(X, L2, S), L1, Scores),
+  sum_list(Scores, Result).
 
 :- begin_tests(day1).
 :- use_module(library(readutil), [read_file_to_string/3]).

@@ -1,5 +1,5 @@
 :- module(day2, [part1/2, part2/2]).
-:- use_module(library(clpfd), [in/2, op(_, _, in), op(_, _, ..)]).
+:- use_module(library(clpfd), [ins/2, op(_, _, ins), op(_, _, ..)]).
 
 line_numbers(Line, NumPair) :-
   split_string(Line, " ", " ", SS),
@@ -9,19 +9,16 @@ input_data(String, Data) :-
   maplist(line_numbers, Lines, Data).
 
 safe_report(Report) :-
-  [_|T] = Report,
-  reverse(Report, RevRep),
-  [_|T2] = RevRep,
-  reverse(T2, RepPref),
-  maplist([X, Y, Diff]>>(Diff is X - Y), RepPref, T, Diffs),
-  (forall(member(X, Diffs), X in 1..3) ; forall(member(X, Diffs), X in (-3)..(-1))).
+  [_|RepTail] = Report,
+  length(RepTail, Len),
+  length(RepPref, Len),
+  prefix(RepPref, Report),
+  maplist([X, Y, Diff]>>(Diff is X - Y), RepPref, RepTail, Diffs),
+  (Diffs ins 1..3 ; Diffs ins (-3)..(-1)).
 
 safe_report_dampened(Report) :-
   safe_report(Report), !
-  ; length(Report, Len),
-    SRLen is Len - 1,
-    length(SubRep, SRLen),
-    subseq(Report, SubRep, _),
+  ; select(_, Report, SubRep),
     safe_report(SubRep), !.
   
 part1(Input, Result) :-
