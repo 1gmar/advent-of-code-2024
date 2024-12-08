@@ -41,7 +41,7 @@
             ];
             filetypes = ["prolog"];
             package = null;
-            rootDir = "require('lspconfig/util').root_pattern(\"pack.pl\")";
+            rootDir = "require('lspconfig/util').root_pattern(\"packs.pl\")";
           };
           treesitter.grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
             prolog
