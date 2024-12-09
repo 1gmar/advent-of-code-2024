@@ -32,7 +32,7 @@ part2(Input, Result) :-
   length(SafeReports, Result).
 
 :- begin_tests(day2).
-:- use_module(library(readutil), [read_file_to_string/3]).
+:- use_module(test_utils).
 smallInput("\c
 7 6 4 2 1\n\c
 1 2 7 8 9\n\c
@@ -42,16 +42,8 @@ smallInput("\c
 1 3 6 7 9\n\c
 ").
 
-test_part(Part, In, ExpOut) :- call(Part, In, Out), assertion(Out == ExpOut).
-
-test(part1) :- smallInput(In), test_part(part1, In, 2).
-test(part1) :-
-  read_file_to_string('resources/day2.txt', In, []),
-  test_part(part1, In, 371).
-
-test(part2) :- smallInput(In), test_part(part2, In, 4).
-test(part2) :-
-  read_file_to_string('resources/day2.txt', In, []),
-  test_part(part2, In, 426).
-
+test(part1) :- smallInput(In), test_part(value, part1, In, 2).
+test(part1) :- test_part(file, part1, 'resources/day2.txt', 371).
+test(part2) :- smallInput(In), test_part(value, part2, In, 4).
+test(part2) :- test_part(file, part2, 'resources/day2.txt', 426).
 :- end_tests(day2).

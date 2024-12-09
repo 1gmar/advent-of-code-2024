@@ -24,11 +24,11 @@ part1(Input, Result) :-
 part2(Input, Result) :-
   input_data(Input, Data),
   [L1, L2] = Data,
-  maplist([X, S]>>item_score(X, L2, S), L1, Scores),
+  maplist({L2}/[X, S]>>item_score(X, L2, S), L1, Scores),
   sum_list(Scores, Result).
 
 :- begin_tests(day1).
-:- use_module(library(readutil), [read_file_to_string/3]).
+:- use_module(test_utils).
 smallInput("\c
 3   4\n\c
 4   3\n\c
@@ -37,16 +37,8 @@ smallInput("\c
 3   9\n\c
 3   3\n").
 
-test(part1) :- smallInput(X), part1(X, Y), assertion(Y == 11).
-test(part1) :- 
-  read_file_to_string('resources/day1.txt', X, []),
-  part1(X, Y),
-  assertion(Y == 1660292).
-
-test(part2) :- smallInput(X), part2(X, Y), assertion(Y == 31).
-test(part2) :- 
-  read_file_to_string('resources/day1.txt', X, []),
-  part2(X, Y),
-  assertion(Y == 22776016).
-
+test(part1) :- smallInput(X), test_part(value, part1, X, 11).
+test(part1) :- test_part(file, part1, 'resources/day1.txt', 1660292).
+test(part2) :- smallInput(X), test_part(value, part2, X, 31).
+test(part2) :- test_part(file, part2, 'resources/day1.txt', 22776016).
 :- end_tests(day1).
