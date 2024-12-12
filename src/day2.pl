@@ -1,4 +1,4 @@
-:- module(day2, [part1/2, part2/2]).
+:- module(day2, []).
 :- use_module(library(clpfd), [ins/2, op(_, _, ins), op(_, _, ..)]).
 
 line_numbers(Line, NumPair) :-
@@ -14,12 +14,12 @@ safe_report(Report) :-
   length(RepPref, Len),
   prefix(RepPref, Report),
   maplist([X, Y, Diff]>>(Diff is X - Y), RepPref, RepTail, Diffs),
-  (Diffs ins 1..3 ; Diffs ins (-3)..(-1)).
+  (Diffs ins 1..3 ; Diffs ins (-3)..(-1)), !.
 
 safe_report_dampened(Report) :-
-  safe_report(Report), !
+  ( safe_report(Report)
   ; select(_, Report, SubRep),
-    safe_report(SubRep), !.
+    safe_report(SubRep)), !.
   
 part1(Input, Result) :-
   input_data(Input, Data),
@@ -42,8 +42,8 @@ smallInput("\c
 1 3 6 7 9\n\c
 ").
 
-test(part1) :- smallInput(In), test_part(value, part1, In, 2).
-test(part1) :- test_part(file, part1, 'resources/day2.txt', 371).
-test(part2) :- smallInput(In), test_part(value, part2, In, 4).
-test(part2) :- test_part(file, part2, 'resources/day2.txt', 426).
+test(part1) :- smallInput(In), test_part(value, day2:part1, In, 2).
+test(part1) :- test_part(file, day2:part1, 'resources/day2.txt', 371).
+test(part2) :- smallInput(In), test_part(value, day2:part2, In, 4).
+test(part2) :- test_part(file, day2:part2, 'resources/day2.txt', 426).
 :- end_tests(day2).

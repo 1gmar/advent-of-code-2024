@@ -1,4 +1,4 @@
-:- module(day1, [part1/2, part2/2]).
+:- module(day1, []).
 :- use_module(library(clpfd), [transpose/2]).
 
 line_numbers(Line, NumPair) :-
@@ -37,8 +37,8 @@ smallInput("\c
 3   9\n\c
 3   3\n").
 
-test(part1) :- smallInput(X), test_part(value, part1, X, 11).
-test(part1) :- test_part(file, part1, 'resources/day1.txt', 1660292).
-test(part2) :- smallInput(X), test_part(value, part2, X, 31).
-test(part2) :- test_part(file, part2, 'resources/day1.txt', 22776016).
+test(part1) :- smallInput(X), test_part(value, day1:part1, X, 11).
+test(part1) :- test_part(file, day1:part1, 'resources/day1.txt', 1660292).
+test(part2) :- smallInput(X), test_part(value, day1:part2, X, 31).
+test(part2) :- test_part(file, day1:part2, 'resources/day1.txt', 22776016).
 :- end_tests(day1).

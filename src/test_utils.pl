@@ -3,7 +3,7 @@
 
 assert_part_result(Part, Input, ExpResult) :-
   call(Part, Input, Result),
-  assertion(Result == ExpResult).
+  assertion(Result =:= ExpResult).
 
 test_part(value, Part, Input, ExpResult) :-
   assert_part_result(Part, Input, ExpResult).
