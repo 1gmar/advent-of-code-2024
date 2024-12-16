@@ -14,12 +14,12 @@ safe_report(Report) :-
   length(RepPref, Len),
   prefix(RepPref, Report),
   maplist([X, Y, Diff]>>(Diff is X - Y), RepPref, RepTail, Diffs),
-  (Diffs ins 1..3 ; Diffs ins (-3)..(-1)), !.
+  (Diffs ins 1..3 ; Diffs ins (-3)..(-1)).
 
 safe_report_dampened(Report) :-
-  ( safe_report(Report)
+  safe_report(Report)
   ; select(_, Report, SubRep),
-    safe_report(SubRep)), !.
+    safe_report(SubRep).
   
 part1(Input, Result) :-
   input_data(Input, Data),

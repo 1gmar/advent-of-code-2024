@@ -7,11 +7,11 @@ mul(S) --> mul(X, Y), { S #= S0 + X * Y }, mul(S0).
 mul(S) --> [_], mul(S).
 mul(0) --> [].
 
-conditional_mul(S-_) --> "do()", conditional_mul(S-on).
-conditional_mul(S-_) --> "don't()", conditional_mul(S-off).
-conditional_mul(S-on) --> mul(X, Y), { S #= S0 + X * Y }, conditional_mul(S0-_).
-conditional_mul(S-F) --> [_], conditional_mul(S-F).
-conditional_mul(0-_) --> [].
+conditional_mul(S, _) --> "do()", conditional_mul(S, on).
+conditional_mul(S, _) --> "don't()", conditional_mul(S, off).
+conditional_mul(S, on) --> mul(X, Y), { S #= S0 + X * Y }, conditional_mul(S0, on).
+conditional_mul(S, F) --> [_], conditional_mul(S, F).
+conditional_mul(0, _) --> [].
 
 part1(Input, Result) :-
   string_codes(Input, Codes),
@@ -19,7 +19,7 @@ part1(Input, Result) :-
   
 part2(Input, Result) :-
   string_codes(Input, Codes),
-  once(phrase(conditional_mul(Result-on), Codes, _)).
+  once(phrase(conditional_mul(Result, on), Codes, _)).
 
 :- begin_tests(day3).
 :- use_module(test_utils).
