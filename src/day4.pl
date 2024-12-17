@@ -1,96 +1,61 @@
 :- module(day4, []).
 :- use_module(library(clpfd), [transpose/2, (#=)/2, op(_, _, #=), (#>)/2, op(_, _, #>)]).
 
-take(N, List, Pref) :-
-  length(Pref, N),
-  prefix(Pref, List).
-
-count_down_list(_, 0, []).
-count_down_list(E, N, [E|L]) :-
+count_down_list(_, _, 0, []).
+count_down_list(E, Step, N, [E|L]) :-
   N #> 0,
   N0 #= N - 1,
-  E0 #= E - 1,
-  count_down_list(E0, N0, L).
+  E0 #= E + Step,
+  count_down_list(E0, Step, N0, L).
 
 list_window(List, N, Win) :-
   length(Win, N),
   append([_, Win, _], List).
 
-rotate(List, N, Result) :-
-  reverse(List, RL),
-  length(List, Len),
-  (N < 0 -> RotN is (Len + N) mod Len ; RotN is N mod Len),
-  length(RPref, RotN),
-  append(RPref, RSuff, RL),
-  reverse(RPref, Pref),
-  reverse(RSuff, Suff),
-  append(Pref, Suff, Result).
-
-xmas_match(Row) :-
-  string_chars("XMAS", XMAS),
-  append([_, XMAS, _], Row).
+word_list_match(Word, List) :-
+  string_chars(Word, CWord),
+  reverse(CWord, RWord),
+  ( append([_, CWord, _], List)
+  ; append([_, RWord, _], List)
+  ).
 row_xmas_count(Row, Count) :-
-  aggregate_all(count, xmas_match(Row), FCount),
-  reverse(Row, RRow),
-  aggregate_all(count, xmas_match(RRow), BCount),
-  Count is FCount + BCount.
+  aggregate_all(count, word_list_match("XMAS", Row), Count).
 
-matrix_diagonal_xmas_count(Mat, Count) :-
-  matrix_right_diagonals_xmas_count(Mat, C1),
-  maplist(reverse, Mat, RMat),
-  matrix_right_diagonals_xmas_count(RMat, C2),
-  Count is C1 + C2.
-matrix_right_diagonals_xmas_count(Mat, Count) :-
-  matrix_row_diagonals(Mat, RDiags),
-  row_diagonals_xmas_count(RDiags, Count1),
-  transpose(Mat, TMat),
-  matrix_row_diagonals(TMat, LDiags),
-  [_|LDiagsT] = LDiags,
-  row_diagonals_xmas_count(LDiagsT, Count2),
-  Count is Count1 + Count2.
-matrix_row_diagonals(Mat, RDiags) :-
-  length(Mat, Len),
-  count_down_list(0, Len, Rots),
-  maplist(rotate, Mat, Rots, CD),
-  transpose(CD, RDiags).
-row_diagonals_xmas_count(RDiags, Count) :-
-  length(RDiags, Len),
-  count_down_list(Len, Len, TakeArgs),
-  maplist(take, TakeArgs, RDiags, Diags),
-  maplist(row_xmas_count, Diags, Counts),
-  sum_list(Counts, Count).
+n_col_win_diagonals(N, ColWin, Diags) :-
+  count_down_list(N, -1, N, LIndices),
+  maplist(nth1, LIndices, ColWin, Diag1),
+  count_down_list(0, 1, N, RIndices),
+  maplist(nth0, RIndices, ColWin, Diag2),
+  Diags = [Diag1, Diag2].
+
+matrix_xmas_diagonal_match(Mat) :-
+  list_window(Mat, 4, RowWin),
+  transpose(RowWin, TRW),
+  list_window(TRW, 4, ColWin),
+  n_col_win_diagonals(4, ColWin, Diags),
+  select(D, Diags, _),
+  word_list_match("XMAS", D).
 
 matrix_xmas_count(Mat, Count) :-
   maplist(row_xmas_count, Mat, RowCounts),
   transpose(Mat, TMat),
   maplist(row_xmas_count, TMat, ColCounts),
-  matrix_diagonal_xmas_count(Mat, DiagCount),
+  aggregate_all(count, matrix_xmas_diagonal_match(Mat), DiagCount),
   sum_list(RowCounts, RowCount),
   sum_list(ColCounts, ColCount),
   Count is RowCount + ColCount + DiagCount.
 
-x_mas_match(Diag) :-
-  string_chars("MAS", XMAS),
-  (XMAS = Diag ; reverse(Diag, XMAS)).
-three_col_win_diagonal(right, ColWin, Diag) :- three_col_win_diagonal_(ColWin, [0, 1, 2], 2, Diag).
-three_col_win_diagonal(left, ColWin, Diag) :- three_col_win_diagonal_(ColWin, [0, -1, -2], 0, Diag).
-three_col_win_diagonal_(ColWin, Rots, Index, Diag) :-
-  maplist(rotate, ColWin, Rots, RW),
-  transpose(RW, TRW),
-  nth0(Index, TRW, Diag).
 matrix_x_mas_match(Mat) :-
   list_window(Mat, 3, RowWin),
   transpose(RowWin, TRW),
   list_window(TRW, 3, ColWin),
-  three_col_win_diagonal(left, ColWin, Diag1),
-  three_col_win_diagonal(right, ColWin, Diag2),
-  x_mas_match(Diag1),
-  x_mas_match(Diag2).
+  n_col_win_diagonals(3, ColWin, Diags),
+  maplist(word_list_match("MAS"), Diags).
 
 part1(Input, Result) :-
   string_lines(Input, Lines),
   maplist(string_chars, Lines, Cs),
-  once(matrix_xmas_count(Cs, Result)).
+  matrix_xmas_count(Cs, Result).
 
 part2(Input, Result) :-
   string_lines(Input, Lines),
