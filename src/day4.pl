@@ -1,12 +1,13 @@
 :- module(day4, []).
-:- use_module(library(clpfd), [transpose/2, (#=)/2, op(_, _, #=), (#>)/2, op(_, _, #>)]).
+:- use_module(library(clpfd), 
+  [transpose/2, (#=)/2, op(_, _, #=), (#>)/2, op(_, _, #>), in/2, op(_, _, in), op(_, _, ..)]).
 
-count_down_list(_, _, 0, []).
-count_down_list(E, Step, N, [E|L]) :-
+range_list(_, _, 0, []).
+range_list(E, Step, N, [E|L]) :-
   N #> 0,
   N0 #= N - 1,
   E0 #= E + Step,
-  count_down_list(E0, Step, N0, L).
+  range_list(E0, Step, N0, L).
 
 list_window(List, N, Win) :-
   length(Win, N),
@@ -15,18 +16,29 @@ list_window(List, N, Win) :-
 word_list_match(Word, List) :-
   string_chars(Word, CWord),
   reverse(CWord, RWord),
-  ( append([_, CWord, _], List)
-  ; append([_, RWord, _], List)
-  ).
-row_xmas_count(Row, Count) :-
-  aggregate_all(count, word_list_match("XMAS", Row), Count).
+  (CWord = List ; RWord = List).
+
+matrix_n_rotation(Mat, 0, Mat).
+matrix_n_rotation(Mat, N, Rot) :-
+  N #> 0,
+  N0 #= N - 1,
+  maplist(reverse, Mat, RMat),
+  transpose(RMat, TRMat),
+  matrix_n_rotation(TRMat, N0, Rot).
 
 n_col_win_diagonals(N, ColWin, Diags) :-
-  count_down_list(N, -1, N, LIndices),
+  range_list(N, -1, N, LIndices),
   maplist(nth1, LIndices, ColWin, Diag1),
-  count_down_list(0, 1, N, RIndices),
+  range_list(0, 1, N, RIndices),
   maplist(nth0, RIndices, ColWin, Diag2),
   Diags = [Diag1, Diag2].
+
+matrix_xmas_row_col_match(Mat) :-
+  string_chars("XMAS", XMAS),
+  N in 0..3,
+  matrix_n_rotation(Mat, N, Rot),
+  select(Row, Rot, _),
+  append([_, XMAS, _], Row).
 
 matrix_xmas_diagonal_match(Mat) :-
   list_window(Mat, 4, RowWin),
@@ -37,13 +49,9 @@ matrix_xmas_diagonal_match(Mat) :-
   word_list_match("XMAS", D).
 
 matrix_xmas_count(Mat, Count) :-
-  maplist(row_xmas_count, Mat, RowCounts),
-  transpose(Mat, TMat),
-  maplist(row_xmas_count, TMat, ColCounts),
+  aggregate_all(count, matrix_xmas_row_col_match(Mat), RowColCount),
   aggregate_all(count, matrix_xmas_diagonal_match(Mat), DiagCount),
-  sum_list(RowCounts, RowCount),
-  sum_list(ColCounts, ColCount),
-  Count is RowCount + ColCount + DiagCount.
+  Count is RowColCount + DiagCount.
 
 matrix_x_mas_match(Mat) :-
   list_window(Mat, 3, RowWin),
