@@ -1,17 +1,15 @@
 :- module(day1, []).
-:- use_module(library(clpfd), [transpose/2]).
 
 line_numbers(Line, NumPair) :-
   split_string(Line, " ", " ", SS),
-  maplist([Str, Num]>>number_string(Num, Str), SS, NumPair).
+  maplist(number_string, NumPair, SS).
 input_data(String, Data) :-
   string_lines(String, Lines),
   maplist(line_numbers, Lines, NumLines),
   transpose(NumLines, Data).
 
-item_score(Item, List, Score) :-
-  include(==(Item), List, FL),
-  length(FL, C),
+item_score(List, Item, Score) :-
+  occurrences_of_term(Item, List, C),
   Score is Item * C.
 
 part1(Input, Result) :-
@@ -24,7 +22,7 @@ part1(Input, Result) :-
 part2(Input, Result) :-
   input_data(Input, Data),
   [L1, L2] = Data,
-  maplist({L2}/[X, S]>>item_score(X, L2, S), L1, Scores),
+  maplist(item_score(L2), L1, Scores),
   sum_list(Scores, Result).
 
 :- begin_tests(day1).

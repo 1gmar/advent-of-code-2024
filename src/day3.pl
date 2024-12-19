@@ -1,6 +1,5 @@
 :- module(day3, []).
 :- use_module(library(dcg/basics), [integer//1]).
-:- use_module(library(clpfd), [(#=)/2, op(_, _, #=)]).
 
 mul(X, Y) --> "mul(", integer(X), ",", integer(Y), ")".
 mul(S) --> mul(X, Y), { S #= S0 + X * Y }, mul(S0).

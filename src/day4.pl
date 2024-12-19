@@ -1,6 +1,4 @@
 :- module(day4, []).
-:- use_module(library(clpfd), 
-  [transpose/2, (#=)/2, op(_, _, #=), (#>)/2, op(_, _, #>), in/2, op(_, _, in), op(_, _, ..)]).
 
 range_list(_, _, 0, []).
 range_list(E, Step, N, [E|L]) :-
