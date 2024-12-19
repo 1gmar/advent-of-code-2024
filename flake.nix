@@ -33,7 +33,7 @@
               "-s"
               "defaults.pl"
               "-g"
-              "use_module('/home/igmar/code/advent-of-code-2024/packs/lsp_server/prolog/lsp_server')."
+              "use_module('packs/lsp_server/prolog/lsp_server')."
               "-g"
               "lsp_server:main"
               "-t"
