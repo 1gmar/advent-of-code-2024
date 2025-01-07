@@ -1,12 +1,5 @@
 :- module(day4, []).
 
-range_list(_, _, 0, []).
-range_list(E, Step, N, [E|L]) :-
-  N #> 0,
-  N0 #= N - 1,
-  E0 #= E + Step,
-  range_list(E0, Step, N0, L).
-
 list_window(List, N, Win) :-
   length(Win, N),
   append([_, Win, _], List).
