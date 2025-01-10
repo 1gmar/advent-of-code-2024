@@ -5,10 +5,13 @@
 :- set_prolog_flag(answer_write_options, [max_depth(0)]).
 :- set_prolog_flag(debugger_write_options, [max_depth(0)]).
 
-range_list(_, _, 0, []).
-range_list(E, Step, N, [E|L]) :-
-  N #> 0,
-  N0 #= N - 1,
-  E0 #= E + Step,
-  range_list(E0, Step, N0, L).
+range_list(E, Step, N, L) :-
+  zcompare(C, N, 0),
+  range_list_(C, E, Step, N, L).
+
+range_list_(=, _, _, _, []).
+range_list_(>, E0, Step, N0, [E0|L]) :-
+  N #= N0 - 1,
+  E #= E0 + Step,
+  range_list(E, Step, N, L).
 

@@ -48,23 +48,23 @@ select_distance(e, Obs, p(X, Y), Size, Diff) :- select_distance_(e, Obs, p(X, Y)
 aggregate_route(n, p(X, Y), Diff, Route, p(X, GY)) :-
   range_list(Y, -1, Diff, L),
   GY #= Y - Diff + 1,
-  aggregate(set(p(X, Y1)), T^select(Y1, L, T), Route).
+  setof(p(X, Y1), T^select(Y1, L, T), Route).
 aggregate_route(s, p(X, Y), Diff, Route, p(X, GY)) :-
   range_list(Y, 1, Diff, L),
   GY #= Y + Diff - 1,
-  aggregate(set(p(X, Y1)), T^select(Y1, L, T), Route).
+  setof(p(X, Y1), T^select(Y1, L, T), Route).
 aggregate_route(w, p(X, Y), Diff, Route, p(GX, Y)) :-
   range_list(X, -1, Diff, L),
   GX #= X - Diff + 1,
-  aggregate(set(p(X1, Y)), T^select(X1, L, T), Route).
+  setof(p(X1, Y), T^select(X1, L, T), Route).
 aggregate_route(e, p(X, Y), Diff, Route, p(GX, Y)) :-
   range_list(X, 1, Diff, L),
   GX #= X + Diff - 1,
-  aggregate(set(p(X1, Y)), T^select(X1, L, T), Route).
+  setof(p(X1, Y), T^select(X1, L, T), Route).
 
 move_to_obstacle(Dir, Obs, GPos, Size, Route, NGPos) :-
   select_distance(Dir, Obs, GPos, Size, Diff),
-  once(aggregate_route(Dir, GPos, Diff, Route, NGPos)).
+  aggregate_route(Dir, GPos, Diff, Route, NGPos).
 
 next_guard_pos_(n, p(X, Y), Diff, p(X, GY)) :- GY #= Y - Diff + 1.
 next_guard_pos_(s, p(X, Y), Diff, p(X, GY)) :- GY #= Y + Diff - 1.
@@ -116,12 +116,12 @@ string_parsed_map(Input, Len, BST, GP) :-
 
 part1(Input, Result) :-
   string_parsed_map(Input, Len, Obs, GP),
-  once(simulate_guard_patrol(n, GP, Obs, Len, [], Route)),
+  simulate_guard_patrol(n, GP, Obs, Len, [], Route),
   length(Route, Result).
 
 part2(Input, Result) :-
   string_parsed_map(Input, Len, Obs, GP),
-  once(simulate_guard_patrol(n, GP, Obs, Len, [], Route)),
+  simulate_guard_patrol(n, GP, Obs, Len, [], Route),
   aggregate(count, find_patrol_loops(GP, Obs, Route, Len), Result).
 
 :- begin_tests(day6).
