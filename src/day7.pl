@@ -8,10 +8,8 @@ equations(Eqs) --> sequence(equation, Eqs).
 eval(0, X, Y, R) :- R #= X + Y.
 eval(1, X, Y, R) :- R #= X * Y.
 eval(2, X, Y, R) :-
-  number_string(X, S1),
-  number_string(Y, S2),
-  string_concat(S2, S1, S),
-  number_string(R, S).
+  Exp is 1 + floor(log10(X)),
+  R #= X + Y * 10 ^ Exp.
 
 valid_equation(TestVal, Limit, Cfs) :-
   length(Cfs, Len),
@@ -23,15 +21,13 @@ valid_equations(Eqs, Limit, TestVal) :-
   member(eq(TestVal, Cfs), Eqs),
   once(valid_equation(TestVal, Limit, Cfs)).
 
-part1(Input, Result) :-
+input_result(Input, Limit, Result) :-
   string_codes(Input, Cs),
   once(phrase(equations(Eqs), Cs)),
-  aggregate(sum(R), valid_equations(Eqs, 1, R), Result).
+  aggregate(sum(R), valid_equations(Eqs, Limit, R), Result).
 
-part2(Input, Result) :-
-  string_codes(Input, Cs),
-  once(phrase(equations(Eqs), Cs)),
-  aggregate(sum(R), valid_equations(Eqs, 2, R), Result).
+part1(Input, Result) :- input_result(Input, 1, Result).
+part2(Input, Result) :- input_result(Input, 2, Result).
 
 :- begin_tests(day7).
 :- use_module(test_utils).
