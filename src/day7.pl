@@ -5,29 +5,30 @@
 equation(eq(R, Coefs)) --> integer(R), ": ", sequence(integer, " ", Coefs), eol.
 equations(Eqs) --> sequence(equation, Eqs).
 
-eval(0, X, Y, R) :- R #= X + Y.
-eval(1, X, Y, R) :- R #= X * Y.
-eval(2, X, Y, R) :-
-  Exp is 1 + floor(log10(X)),
-  R #= X + Y * 10 ^ Exp.
-
-valid_equation(TestVal, Limit, Cfs) :-
-  length(Cfs, Len),
-  OpLen #= Len - 1,
-  length(BitL, OpLen),
-  BitL ins 0..Limit,
-  foldl(eval, [0|BitL], Cfs, 0, TestVal).
-valid_equations(Eqs, Limit, TestVal) :-
+valid_equation(_, Target, [Target]).
+valid_equation(Mode, Target0, [C|Cfs]) :-
+  ( divmod(Target0, C, Target, 0),
+    valid_equation(Mode, Target, Cfs)
+  ; Target0 > C,
+    Target #= Target0 - C,
+    valid_equation(Mode, Target, Cfs)
+  ; Mode = concat,
+    Divisor is 10 ** (1 + floor(log10(C))),
+    divmod(Target0, Divisor, Target, C),
+    valid_equation(concat, Target, Cfs)
+  ).
+valid_equations(Eqs, Mode, TestVal) :-
   member(eq(TestVal, Cfs), Eqs),
-  once(valid_equation(TestVal, Limit, Cfs)).
+  reverse(Cfs, RCfs),
+  once(valid_equation(Mode, TestVal, RCfs)).
 
-input_result(Input, Limit, Result) :-
+input_result(Input, Mode, Result) :-
   string_codes(Input, Cs),
   once(phrase(equations(Eqs), Cs)),
-  aggregate(sum(R), valid_equations(Eqs, Limit, R), Result).
+  aggregate(sum(R), valid_equations(Eqs, Mode, R), Result).
 
-part1(Input, Result) :- input_result(Input, 1, Result).
-part2(Input, Result) :- input_result(Input, 2, Result).
+part1(Input, Result) :- input_result(Input, default, Result).
+part2(Input, Result) :- input_result(Input, concat, Result).
 
 :- begin_tests(day7).
 :- use_module(test_utils).
