@@ -1,4 +1,6 @@
 :- use_module(library(clpfd)).
+:- use_module(library(dcg/basics)).
+:- use_module(library(dcg/high_order)).
 
 :- set_prolog_flag(double_quotes, chars).
 :- set_prolog_flag(back_quotes, string).

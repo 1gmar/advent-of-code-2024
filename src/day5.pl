@@ -1,6 +1,4 @@
 :- module(day5, []).
-:- use_module(library(dcg/basics), [integer//1]).
-:- use_module(library(dcg/high_order), [sequence//3]).
 
 order_rules([rule(X, Y)|Rs]) --> integer(X), "|", integer(Y), "\n", order_rules(Rs).
 order_rules([]) --> "\n".

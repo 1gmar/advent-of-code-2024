@@ -1,6 +1,4 @@
 :- module(day7, []).
-:- use_module(library(dcg/basics), [integer//1, eol//0]).
-:- use_module(library(dcg/high_order), [sequence//2, sequence//3]).
 
 equation(eq(R, Coefs)) --> integer(R), ": ", sequence(integer, " ", Coefs), eol.
 equations(Eqs) --> sequence(equation, Eqs).
