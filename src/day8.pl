@@ -17,9 +17,6 @@ antenna_map(Pts0, c(X0, Y), Pts) -->
   antenna_map(Pts1, c(X, Y), Pts).
 antenna_map(Pts, _, Pts) --> [].
 
-antenna_line(As, line(P1, P2)) :- perm_n(2, As, [P1, P2]).
-perm_n(N, L, P) :- comb(N, L, C), permutation(C, P).
-
 comb(0, _, []) :- !.
 comb(_, [], []) :- !.
 comb(N, [X|Xs], C) :-
@@ -30,21 +27,22 @@ comb(N, [X|Xs], C) :-
   ; comb(N, Xs, C)
   ).
 
-distance_antinode_position(line(p(X0, Y0), p(X1, Y1)), p(X, Y)) :-
-  SqD #= (Y1 - Y0) ^ 2 + (X1 - X0) ^ 2,
-  (Y1 - Y0) * (X - X1) #= (Y - Y1) * (X1 - X0),
-  SqD #= (Y0 - Y) ^ 2 + (X0 - X) ^ 2,
-  4 * SqD #= (Y1 - Y) ^ 2 + (X1 - X) ^ 2.
+distance_antinode_position([p(X0, Y0), p(X1, Y1)], p(X, Y)) :-
+  ( X0 - X #= 2 * (X1 - X),
+    Y0 - Y #= 2 * (Y1 - Y)
+  ; 2 * (X0 - X) #= X1 - X,
+    2 * (Y0 - Y) #= Y1 - Y
+  ).
 
-line_antinode_position(line(p(X0, Y0), p(X1, Y1)), p(X, Y)) :-
-  (Y1 - Y0) * (X - X1) #= (Y - Y1) * (X1 - X0),
-  label([X, Y]).
+line_antinode_position([p(X0, Y0), p(X1, Y1)], p(X, Y)) :-
+  (Y1 - Y0) * (X - X1) #= (Y - Y1) * (X1 - X0).
 
 antennas_antinode(AN_Position, As_by_Freq, Size, p(X, Y)) :-
   member(As, As_by_Freq),
-  antenna_line(As, Line),
+  comb(2, As, Line),
   [X, Y] ins 0..Size,
-  call(AN_Position, Line, p(X, Y)).
+  call(AN_Position, Line, p(X, Y)),
+  label([X, Y]).
   
 input_antinode_criteria_result(Input, Criteria, Result) :-
   string_codes(Input, Cs),

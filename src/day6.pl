@@ -46,21 +46,29 @@ select_distance(w, Obs, p(X, Y), Size, Diff) :- select_distance_(w, Obs, p(X, Y)
 select_distance(e, Obs, p(X, Y), Size, Diff) :- select_distance_(e, Obs, p(X, Y), X, Size, Diff).
 
 aggregate_route(n, p(X, Y), Diff, Route, p(X, GY)) :-
-  range_list(Y, -1, Diff, L),
+  Y0 #= Y - 1,
+  N #= Diff - 1,
+  range_list(Y0, -1, N, L),
   GY #= Y - Diff + 1,
-  setof(p(X, Y1), T^select(Y1, L, T), Route).
+  bagof(p(X, Y1, n), T^select(Y1, L, T), Route).
 aggregate_route(s, p(X, Y), Diff, Route, p(X, GY)) :-
-  range_list(Y, 1, Diff, L),
+  Y0 #= Y + 1,
+  N #= Diff - 1,
+  range_list(Y0, 1, N, L),
   GY #= Y + Diff - 1,
-  setof(p(X, Y1), T^select(Y1, L, T), Route).
+  bagof(p(X, Y1, s), T^select(Y1, L, T), Route).
 aggregate_route(w, p(X, Y), Diff, Route, p(GX, Y)) :-
-  range_list(X, -1, Diff, L),
+  X0 #= X - 1,
+  N #= Diff - 1,
+  range_list(X0, -1, N, L),
   GX #= X - Diff + 1,
-  setof(p(X1, Y), T^select(X1, L, T), Route).
+  bagof(p(X1, Y, w), T^select(X1, L, T), Route).
 aggregate_route(e, p(X, Y), Diff, Route, p(GX, Y)) :-
-  range_list(X, 1, Diff, L),
+  X0 #= X + 1,
+  N #= Diff - 1,
+  range_list(X0, 1, N, L),
   GX #= X + Diff - 1,
-  setof(p(X1, Y), T^select(X1, L, T), Route).
+  bagof(p(X1, Y, e), T^select(X1, L, T), Route).
 
 move_to_obstacle(Dir, Obs, GPos, Size, Route, NGPos) :-
   select_distance(Dir, Obs, GPos, Size, Diff),
@@ -80,14 +88,14 @@ exit_distance(n, p(_, Y), _, Y).
 exit_distance(e, p(X, _), Len, Diff) :- Diff #= Len - X.
 exit_distance(s, p(_, Y), Len, Diff) :- Diff #= Len - Y.
 
-simulate_guard_patrol(Dir, GPos, Obs, Len, Route, Result) :-
-  (  move_to_obstacle(Dir, Obs, GPos, Len, R1, NGPos)
-  -> ord_union(Route, R1, R2),
+simulate_guard_patrol(p(X, Y, Dir), Obs, Len, Route, Result) :-
+  (  move_to_obstacle(Dir, Obs, p(X, Y), Len, R1, p(X1, Y1))
+  -> append(Route, R1, R2),
      turn_right(Dir, NDir),
-     simulate_guard_patrol(NDir, NGPos, Obs, Len, R2, Result)
-  ;  exit_distance(Dir, GPos, Len, Diff),
-     aggregate_route(Dir, GPos, Diff, R1, _),
-     ord_union(Route, R1, Result)
+     simulate_guard_patrol(p(X1, Y1, NDir), Obs, Len, R2, Result)
+  ;  exit_distance(Dir, p(X, Y), Len, Diff),
+     aggregate_route(Dir, p(X, Y), Diff, R1, _),
+     append(Route, R1, Result)
   ).
 
 find_patrol_loop(Dir, GPos, Obs, Size, GPosTrace) :-
@@ -99,13 +107,23 @@ find_patrol_loop(Dir, GPos, Obs, Size, GPosTrace) :-
      find_patrol_loop(NDir, NPos, Obs, Size, Trace1)
   ).
 
-find_patrol_loops(GPos, Obs, Route, Size) :-
+find_patrol_loops(GPos, Obs, Route, Size, Count) :-
   empty_assoc(BST),
-  ord_del_element(Route, GPos, NPosLs),
-  member(NPos, NPosLs),
-  put_assoc(NPos, Obs, v, NObs),
-  find_patrol_loop(n, GPos, NObs, Size, BST).
-    
+  once(append([Tail, [_]], Route)),
+  foldl(fold_patrol_loops, [GPos|Tail], Route, r(Size, Obs, BST, 0), r(_, _, _, Count)).
+
+fold_patrol_loops(p(GX, GY, Dir), p(X, Y, _), r(Size, Obs, Trace, Count), r(Size, Obs, Trace1, Count1)) :-
+  (  get_assoc(p(X, Y), Trace, v)
+  -> Trace1 = Trace, Count1 = Count
+  ;  put_assoc(p(X, Y), Obs, v, NObs),
+     put_assoc(p(X, Y), Trace, v, Trace1),
+     empty_assoc(BST),
+     (  find_patrol_loop(Dir, p(GX, GY), NObs, Size, BST)
+     -> Count1 is Count + 1
+     ;  Count1 = Count
+     )
+  ).
+
 string_parsed_map(Input, Len, BST, GP) :-
   string_lines(Input, Lines),
   length(Lines, Len),
@@ -115,14 +133,16 @@ string_parsed_map(Input, Len, BST, GP) :-
   list_to_assoc(Ps, BST).
 
 part1(Input, Result) :-
-  string_parsed_map(Input, Len, Obs, GP),
-  simulate_guard_patrol(n, GP, Obs, Len, [], Route),
-  length(Route, Result).
+  string_parsed_map(Input, Len, Obs, p(X, Y)),
+  simulate_guard_patrol(p(X, Y, n), Obs, Len, [], Route),
+  maplist([p(R, C, _), p(R, C)]>>true, Route, R1),
+  list_to_ord_set([p(X, Y)|R1], Set),
+  length(Set, Result).
 
 part2(Input, Result) :-
-  string_parsed_map(Input, Len, Obs, GP),
-  simulate_guard_patrol(n, GP, Obs, Len, [], Route),
-  aggregate(count, find_patrol_loops(GP, Obs, Route, Len), Result).
+  string_parsed_map(Input, Len, Obs, p(X, Y)),
+  simulate_guard_patrol(p(X, Y, n), Obs, Len, [], Route),
+  find_patrol_loops(p(X, Y, n), Obs, Route, Len, Result).
 
 :- begin_tests(day6).
 :- use_module(test_utils).

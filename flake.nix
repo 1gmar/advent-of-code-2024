@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     parent = {
-      url = "/home/igmar/nixos";
+      url = "github:1gmar/nixos";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixvim = {
