@@ -46,27 +46,19 @@ select_distance(w, Obs, p(X, Y), Size, Diff) :- select_distance_(w, Obs, p(X, Y)
 select_distance(e, Obs, p(X, Y), Size, Diff) :- select_distance_(e, Obs, p(X, Y), X, Size, Diff).
 
 aggregate_route(n, p(X, Y), Diff, Route, p(X, GY)) :-
-  Y0 #= Y - 1,
-  N #= Diff - 1,
-  range_list(Y0, -1, N, L),
+  range_list(Y, -1, Diff, L),
   GY #= Y - Diff + 1,
   bagof(p(X, Y1, n), T^select(Y1, L, T), Route).
 aggregate_route(s, p(X, Y), Diff, Route, p(X, GY)) :-
-  Y0 #= Y + 1,
-  N #= Diff - 1,
-  range_list(Y0, 1, N, L),
+  range_list(Y, 1, Diff, L),
   GY #= Y + Diff - 1,
   bagof(p(X, Y1, s), T^select(Y1, L, T), Route).
 aggregate_route(w, p(X, Y), Diff, Route, p(GX, Y)) :-
-  X0 #= X - 1,
-  N #= Diff - 1,
-  range_list(X0, -1, N, L),
+  range_list(X, -1, Diff, L),
   GX #= X - Diff + 1,
   bagof(p(X1, Y, w), T^select(X1, L, T), Route).
 aggregate_route(e, p(X, Y), Diff, Route, p(GX, Y)) :-
-  X0 #= X + 1,
-  N #= Diff - 1,
-  range_list(X0, 1, N, L),
+  range_list(X, 1, Diff, L),
   GX #= X + Diff - 1,
   bagof(p(X1, Y, e), T^select(X1, L, T), Route).
 
@@ -107,10 +99,10 @@ find_patrol_loop(Dir, GPos, Obs, Size, GPosTrace) :-
      find_patrol_loop(NDir, NPos, Obs, Size, Trace1)
   ).
 
-find_patrol_loops(GPos, Obs, Route, Size, Count) :-
+find_patrol_loops(Obs, [GP|Tail], Size, Count) :-
   empty_assoc(BST),
-  once(append([Tail, [_]], Route)),
-  foldl(fold_patrol_loops, [GPos|Tail], Route, r(Size, Obs, BST, 0), r(_, _, _, Count)).
+  once(append([Pref, [_]], [GP|Tail])),
+  foldl(fold_patrol_loops, Pref, Tail, r(Size, Obs, BST, 0), r(_, _, _, Count)).
 
 fold_patrol_loops(p(GX, GY, Dir), p(X, Y, _), r(Size, Obs, Trace, Count), r(Size, Obs, Trace1, Count1)) :-
   (  get_assoc(p(X, Y), Trace, v)
@@ -136,13 +128,13 @@ part1(Input, Result) :-
   string_parsed_map(Input, Len, Obs, p(X, Y)),
   simulate_guard_patrol(p(X, Y, n), Obs, Len, [], Route),
   maplist([p(R, C, _), p(R, C)]>>true, Route, R1),
-  list_to_ord_set([p(X, Y)|R1], Set),
+  list_to_ord_set(R1, Set),
   length(Set, Result).
 
 part2(Input, Result) :-
   string_parsed_map(Input, Len, Obs, p(X, Y)),
   simulate_guard_patrol(p(X, Y, n), Obs, Len, [], Route),
-  find_patrol_loops(p(X, Y, n), Obs, Route, Len, Result).
+  find_patrol_loops(Obs, Route, Len, Result).
 
 :- begin_tests(day6).
 :- use_module(test_utils).
