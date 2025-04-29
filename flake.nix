@@ -2,38 +2,34 @@
   description = "Advent of Code 2024";
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    parent = {
-      url = "github:1gmar/nixos";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nixvim = {
-      url = "github:nix-community/nixvim";
+    nixvim-1gmar = {
+      url = "github:1gmar/nixvim";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
   outputs = {
     self,
-    parent,
-    nixvim,
+    nixvim-1gmar,
     nixpkgs,
     ...
   }: let
     system = "x86_64-linux";
     pkgs = import nixpkgs {inherit system;};
   in {
-    packages.${system}.neovim = nixvim.legacyPackages.${system}.makeNixvimWithModule {
+    packages.${system}.neovim = nixvim-1gmar.legacyPackages.${system}.makeNixvimWithModule {
       inherit pkgs;
       module = {
-        imports = [parent.nixosModules.neovim];
+        filetype.extension = {pl = "prolog";};
+        imports = [nixvim-1gmar.nixvimModule];
         plugins = {
           lsp.servers.prolog_ls = {
             enable = true;
             cmd = [
               "swipl"
-              "-s"
-              "defaults.pl"
+              "-f"
+              "./defaults.pl"
               "-g"
-              "use_module('packs/lsp_server/prolog/lsp_server')."
+              "use_module('./packs/lsp_server/prolog/lsp_server.pl')."
               "-g"
               "lsp_server:main"
               "-t"
@@ -43,12 +39,14 @@
             ];
             filetypes = ["prolog"];
             package = null;
-            rootDir = "require('lspconfig/util').root_pattern(\"packs.pl\")";
+            rootMarkers = [".git"];
           };
-          treesitter.grammarPackages = with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
-            prolog
-            nix
-          ];
+          treesitter.grammarPackages = pkgs.lib.mkForce (
+            with pkgs.vimPlugins.nvim-treesitter.builtGrammars; [
+              prolog
+              nix
+            ]
+          );
         };
       };
     };
